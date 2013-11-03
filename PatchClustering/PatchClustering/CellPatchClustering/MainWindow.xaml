@@ -20,7 +20,7 @@
             </ListBox.ItemsPanel>
             <ListBox.ItemTemplate>
                 <DataTemplate>
-                    <vw:MultiPatchView/>
+                    <vw:ClusterView/>
                 </DataTemplate>
             </ListBox.ItemTemplate>
         </ListBox>

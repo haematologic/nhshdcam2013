@@ -16,11 +16,11 @@ using System.Windows.Shapes;
 namespace CellPatchClustering.Views
 {
     /// <summary>
-    /// Interaction logic for MultiPatchView.xaml
+    /// Interaction logic for ClusterView.xaml
     /// </summary>
-    public partial class MultiPatchView : UserControl
+    public partial class ClusterView : UserControl
     {
-        public MultiPatchView()
+        public ClusterView()
         {
             InitializeComponent();
         }

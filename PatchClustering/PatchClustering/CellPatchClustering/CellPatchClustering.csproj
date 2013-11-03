@@ -57,10 +57,11 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Cluster.cs" />
     <Compile Include="TreeLearner.cs" />
     <Compile Include="Tree.cs" />
-    <Compile Include="Views\MultiPatchView.xaml.cs">
-      <DependentUpon>MultiPatchView.xaml</DependentUpon>
+    <Compile Include="Views\ClusterView.xaml.cs">
+      <DependentUpon>ClusterView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\PatchView.xaml.cs">
       <DependentUpon>PatchView.xaml</DependentUpon>
@@ -80,7 +81,7 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Page Include="Views\MultiPatchView.xaml">
+    <Page Include="Views\ClusterView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

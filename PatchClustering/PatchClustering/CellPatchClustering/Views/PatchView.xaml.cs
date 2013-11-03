@@ -29,6 +29,10 @@ namespace CellPatchClustering.Views
         {
             var p = (Patch)DataContext;
             MyImage.Source = p.Cropped;
+            MyBorder.LayoutTransform = new RotateTransform(-p.Angle, p.Width / 2, p.Height / 2); 
+            //MyImage.Source = p.Image.Bitmap;
+            //Canvas.SetLeft(MyImage, -p.Left);
+            //Canvas.SetTop(MyImage, -p.Top);
         }
     }
 }
