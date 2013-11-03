@@ -58,6 +58,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Cluster.cs" />
+    <Compile Include="HistogramFeature.cs" />
     <Compile Include="TreeLearner.cs" />
     <Compile Include="Tree.cs" />
     <Compile Include="Views\ClusterView.xaml.cs">

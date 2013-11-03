@@ -13,11 +13,14 @@ namespace CellPatchClustering
         {
             var tree = new Tree();
             tree.Root.Count = patches.Count;
+            Console.Write("Training tree on "+patches.Count+" patches.");
             foreach (var p in patches) p.NodeIndex = 0;
             for (int d = 0; d < depth; d++)
             {
+                Console.Write(".");
                 AddLayer(tree, patches);
             }
+            Console.WriteLine();
             return tree;
         }
 
@@ -79,7 +82,8 @@ namespace CellPatchClustering
             var features = new List<IFeature>();
             for (int i = 0; i < N; i++)
             {
-                var f = new AbsoluteIntensityFeature();
+                bool useHist = rnd.Next(3)>0;
+                var f = useHist ? (IFeature)new HistogramFeature() : (IFeature)new AbsoluteIntensityFeature();
                 f.Sample(rnd,p);
                 features.Add(f);
             }

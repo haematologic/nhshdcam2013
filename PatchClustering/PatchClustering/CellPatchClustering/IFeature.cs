@@ -10,5 +10,7 @@ namespace CellPatchClustering
     {
 
         bool ComputeFeature(Patch p);
+
+        void Sample(Random rnd, Patch p);
     }
 }
