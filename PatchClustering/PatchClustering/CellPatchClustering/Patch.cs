@@ -30,6 +30,8 @@ namespace CellPatchClustering
         public int Width { get; set; }
         public int Height { get; set; }
 
+        public int Angle { get; set; }
+
         public int NodeIndex { get; set; }
     }
 }

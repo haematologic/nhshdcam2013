@@ -5,7 +5,9 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300" DataContextChanged="UserControl_DataContextChanged">
-    <Grid>
-        <Image Name="MyImage" Margin="1" Width="{Binding Width,Mode=OneTime}"/>
-    </Grid>
+    
+    <Border Name="MyBorder" Width="{Binding Width,Mode=OneTime}" Height="{Binding Height,Mode=OneTime}" ClipToBounds="True"
+            BorderThickness="1" BorderBrush="Red">
+        <Image Name="MyImage" Margin="1"/>
+    </Border>
 </UserControl>

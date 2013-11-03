@@ -32,12 +32,26 @@ namespace CellPatchClustering
 
             public int Index { get; internal set; }
 
+            /// <summary>
+            /// The number of training images that reached this node.
+            /// </summary>
+            public int Count { get; internal set; }
+
             internal double bestMetric = double.MaxValue;
 
             public Node Left { get; set; } // false
             public Node Right { get; set; } // true
 
             public bool IsLeaf { get { return Left == null; } }
+        }
+
+        internal Node Apply(Patch p)
+        {
+            var nd = Root;
+            while(!nd.IsLeaf) {
+                if (nd.Feature.ComputeFeature(p)) nd=nd.Right; else nd=nd.Left;
+            }
+            return nd;
         }
     }
 }

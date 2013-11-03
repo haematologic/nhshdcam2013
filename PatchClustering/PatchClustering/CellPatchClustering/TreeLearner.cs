@@ -12,6 +12,8 @@ namespace CellPatchClustering
         public Tree Learn(int depth, List<Patch> patches)
         {
             var tree = new Tree();
+            tree.Root.Count = patches.Count;
+            foreach (var p in patches) p.NodeIndex = 0;
             for (int d = 0; d < depth; d++)
             {
                 AddLayer(tree, patches);
@@ -22,10 +24,9 @@ namespace CellPatchClustering
         public void AddLayer(Tree tree, List<Patch> patches) {
             // Get a set of possible features
             var features = GetFeatures(patches[0],100);
+            var leafNodes = tree.Nodes.Where(nd => nd.IsLeaf).ToList();
 
             // For each feature, apply to all patches + count trues and falses, compute metric
-            int[] count = new int[tree.Nodes.Count];
-            foreach(var p in patches) count[p.NodeIndex]++;
             foreach (var f in features)
             {
                 int[] trueCount = new int[tree.Nodes.Count];
@@ -36,25 +37,22 @@ namespace CellPatchClustering
                         trueCount[p.NodeIndex]++;
                     }
                 }
-                for (int i = 0; i < count.Length; i++)
+                foreach (var nd in leafNodes)
                 {
-                    var nd = tree.Nodes[i];
-                    if (!nd.IsLeaf) continue;
-
-                    double metric = Math.Abs(trueCount[i] - (count[i] - trueCount[i]));
+                    double metric = Math.Abs(trueCount[nd.Index] - (nd.Count - trueCount[nd.Index]));
 
                     if (metric < nd.bestMetric)
                     {
                         nd.Feature = f;
                         nd.bestMetric = metric;
                     }
+
                 }
             }
             // Split leaf nodes using best feature
-            for (int i = 0; i < count.Length; i++)
+            foreach(var nd in leafNodes)
             {
-                var nd = tree.Nodes[i];
-                if (!nd.IsLeaf) continue;
+                //Console.WriteLine("Feature for node " + nd.Index + ": " + nd.Feature);
                 nd.Left = tree.AddNode();
                 nd.Right = tree.AddNode();
             }
@@ -65,10 +63,12 @@ namespace CellPatchClustering
                 if (nd.Feature.ComputeFeature(p))
                 {
                     p.NodeIndex = nd.Right.Index;
+                    nd.Right.Count++;
                 }
                 else
                 {
                     p.NodeIndex= nd.Left.Index;
+                    nd.Left.Count++;
                 }
             }
         }
@@ -79,12 +79,8 @@ namespace CellPatchClustering
             var features = new List<IFeature>();
             for (int i = 0; i < N; i++)
             {
-                var f = new AbsoluteIntensityFeature
-                {
-                     OffsetX = rnd.Next(p.Width),
-                     OffsetY = rnd.Next(p.Height),
-                     Threshold = rnd.Next(256)
-                };
+                var f = new AbsoluteIntensityFeature();
+                f.Sample(rnd,p);
                 features.Add(f);
             }
             return features;

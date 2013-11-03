@@ -12,7 +12,7 @@ namespace CellPatchClustering
     {
         internal WriteableBitmap Bitmap;
 
-        internal double[,] Blue;
+        internal Pixel[,] Pixels;
 
         public Image(string filename)
         {
@@ -28,17 +28,17 @@ namespace CellPatchClustering
             int stride = Bitmap.BackBufferStride;
             int size = stride * h;
 
-            Blue = new double[h,w];
+            Pixels = new Pixel[h,w];
             Bitmap.Lock();
             unsafe
             {
                 var pixels = (byte*)Bitmap.BackBuffer;
-                int i=2;
+                int i=0;
                 for (int y = 0; y < h; y++)
                 {
                     for (int x = 0; x < w; x++, i += 4)
                     {
-                        Blue[y, x] = pixels[i];
+                        Pixels[y, x] = new Pixel(pixels[i+2],pixels[i+1],pixels[i]);
                     }
                 }
             }
@@ -46,11 +46,10 @@ namespace CellPatchClustering
             Bitmap.Unlock();
         }
 
-        public List<Patch> GetPatches(int offsetx, int offsety,int patchWidth,int patchHeight)
+        public void AddPatches(List<Patch> patches,int offsetx, int offsety,int patchWidth,int patchHeight)
         {
             int w = Bitmap.PixelWidth;
             int h = Bitmap.PixelHeight;
-            var patches = new List<Patch>();
             for (int y = 0; y <= h - patchHeight; y += offsety)
             {
                 for (int x = 0; x <= w - patchWidth; x += offsetx)
@@ -59,7 +58,20 @@ namespace CellPatchClustering
                     patches.Add(p);
                 }
             }
-            return patches;
+        }
+
+        public struct Pixel
+        {
+            public byte Red;
+            public byte Green;
+            public byte Blue;
+
+            public Pixel(byte r, byte g, byte b)
+            {
+                Red = r;
+                Green = g;
+                Blue = b;
+            }
         }
     }
 }
