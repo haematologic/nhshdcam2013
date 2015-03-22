@@ -7,7 +7,7 @@ import time
 
 images = [ '../images/%s' % f for f in listdir('../images') ]
 for image in images:
-    img = cv2.imread(image)
+    img = cv2.imread(image,1)
     h = np.zeros((300,256,3))
     b,g,r = cv2.split(img)
     bins = np.arange(256).reshape(256,1)
@@ -23,4 +23,4 @@ for image in images:
     h=np.flipud(h)
 
     cv2.imshow('colorhist',h)
-    cv2.waitKey(0)
+    cv2.waitKey(200)
