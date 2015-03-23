@@ -59,15 +59,15 @@ def find_circles(lbl):
     circles, obj_centre = [], []
     contours, _ = cv2.findContours(lbl,
             cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
-
+    
     for c in contours:
         c = c.astype(np.int64) # XXX OpenCV bug.
         area = cv2.contourArea(c)
         
-        if 1 < area < 3000:
+        if 3 < area < 500:
             arclen = cv2.arcLength(c, True)
             circularity = (pi_4 * area) / (arclen * arclen)
-            if circularity > 0.1: # XXX Yes, pretty low threshold.
+            if circularity >= 0: # XXX Yes, pretty low threshold.
                 circles.append(c)
                 box = cv2.boundingRect(c)
                 obj_centre.append((box[0] + (box[2] / 2), box[1] + (box[3] / 2)))
@@ -205,6 +205,7 @@ for image in images:
             lbl[lbl !=0] = 255
             
             circles, new_centre, contours = find_circles(lbl)
+            
             #cv2.drawContours(imgcol,contours,-1,(255,0,255),1)
             #cv2.waitKey(500) == ord('a')
             whole = mh.segmentation.gvoronoi(new_centre)
@@ -217,18 +218,21 @@ for image in images:
             
                
             print '%s, RGB shape (rows,cols,ch): %s, img.size: %s' % (image, imgcol.shape, img.size)
+            mycol = [(255,0,0),(0,255,0),(255,255,0)] #rgb
             for i in xrange(len(circles)):
-                cv2.drawContours(imgcol, circles, i, (255, 0, 255),1)
+                cv2.drawContours(imgcol, circles, i, mycol[j],1)
                 cstr, ccentre = obj_centre[i]
+                ccol = imgcol[ccentre] #bgr to rgb
+                ccol = np.array(ccol).transpose()
+                print '%s, ch=%d, th=%d, ret=%d, count=%d, ccstr=%s, ccentre=%s, b,g,r=%s' % (image, j, thresh, ret, count, cstr, ccentre, ccol)
+            cv2.putText(imgcol, cstr, (10,20+20*j), cv2.FONT_HERSHEY_COMPLEX,
+                        0.5, mycol[j], 1, cv2.CV_AA)
                 
-                print '%s, ch=%d, th=%d, ret=%d, count=%d, ccstr=%s, ccentre=%s, b,g,r=%s' % (image, j, thresh, ret, count, cstr, ccentre, imgcol[ccentre])
-                
-            cv2.putText(imgcol, cstr, ccentre, cv2.FONT_HERSHEY_COMPLEX, 0.5,
-                        (255, 255, 255), 1, cv2.CV_AA)
-            imgcolz = cv2.cvtColor(imgcol, cv2.COLOR_BGR2RGB)
             #cv2.imshow("result", imgcolz)
             #cv2.waitKey(0) == ord('a')
             #plt.figure(figsize=(8,8))
+            imgcolz = cv2.cvtColor(imgcol, cv2.COLOR_BGR2RGB)
+            
             plt.subplot(2,2,1),plt.imshow(imgcol)
             plt.title('%s-input ch%d' % (filename, j))
              
@@ -242,6 +246,10 @@ for image in images:
             plt.title('ch%d opening' % (j))
             plt.ion()
             plt.draw()
+            
+            cv2.imshow(image,imgcolz)
+            cv2.waitKey(0) == ord('a')
+            cv2.destroyAllWindows()
 
             # Python: cv2.HoughCircles(
                 # image, method, dp, minDist[, circles[, param1[, param2 18
@@ -311,10 +319,9 @@ for image in images:
                                imgcol
                               ) 
 
-            imgcolx = cv2.cvtColor(imgcol, cv2.COLOR_BGR2RGB)
-            cv2.imshow(filename,imgcolx)
-            cv2.waitKey(0) == ord('a')
-            cv2.destroyAllWindows()
+            #cv2.imshow(image,imgcolz)
+            #cv2.waitKey(0) == ord('a')
+            #cv2.destroyAllWindows()
 
             #plt.subplot(2,2,4)
             #plt.title('Detected circles')
