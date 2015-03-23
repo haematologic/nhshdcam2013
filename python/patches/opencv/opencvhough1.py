@@ -87,20 +87,20 @@ def track_centre(objcentre, newdata):
             print "Swapping %s <-> %s" % ((i, objcentre[i]), (j, objcentre[j]))
             objcentre[i], objcentre[j] = objcentre[j], objcentre[i]
 
-    
-images = [ '../images/%s' % f for f in listdir('../images') ]
+imgdir = '../images'    
+images = [ '%s' % f for f in listdir(imgdir) ]
 
-c = 0
+myc = 0
 
 obj_centre = None
 for image in images:
     # embed()
-    c = c+1
+    myc = myc+1
 
     if len(sys.argv)>1:
         filename = sys.argv[1]
     else:
-        filename = image
+        filename = join(imgdir, image)
 
     img = cv2.imread(filename,0) # color =1, gray = 0, alpha = -1)
     imgcol = cv2.imread(filename)
@@ -172,20 +172,21 @@ for image in images:
             
             # bg alt method
             bgt = cv2.dilate(otsu,None,iterations = 3)
-            ret, bg = cv2.threshold(bgt,1,128,1)
+            retbg, bg = cv2.threshold(bgt,1,128,1)
             
             # sure background area
             sure_bg = cv2.dilate(opening,kernel,iterations=3)
             
             # find sure foreground area
             dist_transform = cv2.distanceTransform(opening,cv2.cv.CV_DIST_L2,5)
-            ret, sure_fg = cv2.threshold(dist_transform,0.7*dist_transform.max(),255,0)
+            retsfg, sure_fg = cv2.threshold(
+                dist_transform,0.7*dist_transform.max(),255,0)
             
             sure_fg = np.uint8(sure_fg)
             unknown = cv2.subtract(sure_bg,sure_fg)
             
             # marker labelling
-            labelarray, count = label(sure_fg)
+            labelarray, fgcount = label(sure_fg)
             
             # add one to all labels so that sure background is no 0, but 1
             labelarray1 = labelarray+1
@@ -197,7 +198,7 @@ for image in images:
             signals = cv2.watershed(
                 cv2.cvtColor(unknown, cv2.COLOR_GRAY2RGB),labelarray1)
             lbl[lbl < 1] = 0
-            lbl[lbl > count] = 0
+            lbl[lbl > fgcount] = 0
             
             lbl = lbl.astype(np.uint8)
             lbl - cv2.erode(lbl, None)
@@ -206,17 +207,24 @@ for image in images:
             circles, new_centre, contours = find_circles(lbl)
             #cv2.drawContours(imgcol,contours,-1,(255,0,255),1)
             #cv2.waitKey(500) == ord('a')
+            whole = mh.segmentation.gvoronoi(new_centre)
+            
             if obj_centre is None:
                 obj_centre = [(str(i + 1), c) for i, c in enumerate(new_centre)]
             else:
                 obj_centre = [(str(i + 1), c) for i, c in enumerate(new_centre)]
                 #track_centre(obj_centre, new_centre)
-
+            
+               
+            print '%s, RGB shape (rows,cols,ch): %s, img.size: %s' % (image, imgcol.shape, img.size)
             for i in xrange(len(circles)):
-                cv2.drawContours(imgcol, circles, i, (0, 255, 0))
+                cv2.drawContours(imgcol, circles, i, (255, 0, 255),1)
                 cstr, ccentre = obj_centre[i]
-                cv2.putText(imgcol, cstr, ccentre, cv2.FONT_HERSHEY_COMPLEX, 0.5,
-                            (255, 255, 255), 1, cv2.CV_AA)
+                
+                print '%s, ch=%d, th=%d, ret=%d, count=%d, ccstr=%s, ccentre=%s, b,g,r=%s' % (image, j, thresh, ret, count, cstr, ccentre, imgcol[ccentre])
+                
+            cv2.putText(imgcol, cstr, ccentre, cv2.FONT_HERSHEY_COMPLEX, 0.5,
+                        (255, 255, 255), 1, cv2.CV_AA)
             imgcolz = cv2.cvtColor(imgcol, cv2.COLOR_BGR2RGB)
             #cv2.imshow("result", imgcolz)
             #cv2.waitKey(0) == ord('a')
@@ -224,26 +232,26 @@ for image in images:
             plt.subplot(2,2,1),plt.imshow(imgcol)
             plt.title('%s-input ch%d' % (filename, j))
              
-            plt.subplot(2,2,2),plt.imshow(opening)
-            plt.title('ch%d opening' % (j))
+            plt.subplot(2,2,2),plt.imshow(img,'gray')
+            plt.title('ch%d filt-input' % (j))
             plt.subplot(2,2,3),plt.imshow(labelarray1)
             plt.title('ch%d labelarray1' % (j))
             #plt.subplot(2,2,4),plt.imshow(mh.overlay(img,rmax))
             #plt.title('ch%d mh.rmax' % (j))
-            plt.subplot(2,2,4),plt.imshow(lbl)
-            plt.title('ch%d lbl' % (j))
+            plt.subplot(2,2,4),plt.imshow(opening)
+            plt.title('ch%d opening' % (j))
             plt.ion()
             plt.draw()
 
             # Python: cv2.HoughCircles(
                 # image, method, dp, minDist[, circles[, param1[, param2 18
                 # [, minRadius 10 [, maxRadius]]]]])
-            circles = cv2.HoughCircles(
-                img, cv2.cv.CV_HOUGH_GRADIENT,
-                1, 12, np.array([]), param1=20, param2=2, minRadius=0, maxRadius=5
-            )
+            circles = None
+            #circles = cv2.HoughCircles(
+            #   img, cv2.cv.CV_HOUGH_GRADIENT,
+            #   1, 12, np.array([]), param1=20, param2=2, minRadius=0, maxRadius=5
+            #)
 
-            #circles = np.uint16(np.around(circles))
             if not (circles is None):
                 a, b, c = circles.shape 
                 # embed()        
@@ -303,13 +311,13 @@ for image in images:
                                imgcol
                               ) 
 
-                imgcolx = cv2.cvtColor(imgcol, cv2.COLOR_BGR2RGB)
-                cv2.imshow(filename,imgcolx)
-                cv2.waitKey(0) == ord('a')
-                cv2.destroyAllWindows()
-                
-                #plt.subplot(2,2,4)
-                #plt.title('Detected circles')
-                #plt.imshow(cimg)
-                #plt.ion()
-                #plt.draw()
+            imgcolx = cv2.cvtColor(imgcol, cv2.COLOR_BGR2RGB)
+            cv2.imshow(filename,imgcolx)
+            cv2.waitKey(0) == ord('a')
+            cv2.destroyAllWindows()
+
+            #plt.subplot(2,2,4)
+            #plt.title('Detected circles')
+            #plt.imshow(cimg)
+            #plt.ion()
+            #plt.draw()
